@@ -1,0 +1,163 @@
+<div class="cart-form" id="vue-cart-form">
+  <template v-if="cart && cart.items.length > 0">
+    <div class="eleven columns medium-down--one-whole">
+      <div class="mini-cart-rows">
+        <div class="mini-cart-item" v-for="item in cart.items">
+          <div class="cart_items js-cart_items clearfix">
+            <div class="cart_item clearfix">
+              <div class="five columns alpha">
+                <a :href="item.url" class="cart_page_image">
+                  <div class="image-element__wrap">
+                    <img :src="item.image" :alt="item.title" class="lazyload" />
+                  </div>
+                </a>
+              </div>
+              <div class="eleven columns omega cart_content_info">
+                <h3 class="cart_item__title">
+                  <div class="item_title">
+                    <a :href="item.url">${ item.product_title }</a>
+                  </div>
+                </h3>
+                <p class="meta">
+                  <span class="label">${ item.options_with_values[0].name }:</span>
+                  <span>${ item.options_with_values[0].value }</span>
+                </p>
+                <p class="modal_price">
+                  <span class="money">${ money(item.price) }</span>
+                </p>
+                <div class="left product-quantity-box">
+                  <span class="ss-icon product-minus" data-func="minus" @click="decrement(item)"><span
+                      class="icon-minus"></span></span>
+                  <input class="quantity" type="text" v-model="item.quantity" />
+                  <span class="ss-icon product-plus" data-func="plus" @click="increment(item)"><span
+                      class="icon-plus"></span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="five columns medium-down--one-whole">
+      <div class="section clearfix">
+        <div class="subtotal">
+          <p class="cart_subtotal js-cart_subtotal">
+            <span class="right">
+              <span class="money">${ money(cart.total_price)}</span>
+            </span>
+            <span>{{ 'cart.general.subtotal' | t }}</span>
+          </p>
+
+          {% if section.settings.display_savings %}
+            <p class="cart_savings sale">
+              {% if total_saving > 0 %}
+                <span class="right">
+                  <span class="money">{{ total_saving | money }}</span>
+                </span>
+                <span>{{ 'layout.general.savings' | t }}</span>
+              {% endif %}
+            </p>
+          {% endif %}
+
+          {% if settings.show_multiple_currencies %}
+            <p>
+              <small>
+                {{ 'cart.general.orders_processed_in_currency_html' | t: currency: shop.currency }}
+              </small>
+            </p>
+          {% endif %}
+
+          {% if section.settings.display_special_instructions %}
+            <label for="note">{{ 'cart.general.note' | t: shop_name: shop.name }}:</label>
+            <textarea id="note" name="note" rows="2">{{ cart.note }}</textarea>
+          {% endif %}
+
+          {% if section.settings.display_tos_checkbox %}
+            <p>
+              <input type="checkbox" class="tos_agree" id="cart_agree" required />
+                <label class="tos_label" for="cart_agree">
+                  {{ 'cart.general.agree_to_terms_html' | t }}
+                </label>
+              {% if settings.tos_page != blank %}
+                <a href="{{ pages[settings.tos_page].url }}" target="_blank" class="tos_icon">{{ 'cart.general.view_terms' | t }}</a>
+              {% endif %}
+            </p>
+          {% endif %}
+
+          {% if section.settings.cart_message != blank %}
+            <div>
+              {{ section.settings.cart_message }}
+            </div>
+          {% endif %}
+
+          <p>
+            <button type="submit" class="action_button add_to_cart" id="checkout" name="checkout">{% if settings.show_lock_icon %}<span class="icon-lock"></span>{% endif %}{{ 'cart.general.checkout' | t }}</button>
+          </p>
+
+          {% if content_for_additional_checkout_buttons %}
+            <div class="additional-checkout-buttons">
+              {{ content_for_additional_checkout_buttons }}
+            </div>
+          {% endif %}
+
+          {% if cart.item_count > 0 %}
+            <div class="featured-links">
+              <a href="{% if cart.items.first.product.collections != blank %}{{ cart.items.first.product.collections.last.url }}{% else %}/collections/all{% endif %}" class="secondary_button">{{ 'cart.general.continue_shopping_link_html' | t }}</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template v-else>
+    <p class="empty_cart">{{ 'layout.general.empty_cart' | t }}</p>
+  </template>
+</div>
+
+<script>
+  if (document.querySelector('#vue-cart-form')) {
+
+    const miniCart = Vue.createApp({
+      delimiters: ['${', '}'],
+      data() {
+        return {
+          cartData: store.state.cartState
+        }
+      },
+      methods: {
+        decrement(item) {
+          const data = {
+            "id": item.key,
+            "quantity": item.quantity - 1
+          }
+          axios.post('/cart/change.js', data)
+            .then(response => {
+              store.getCart()
+            })
+            .catch(error => console.log(error))
+        },
+        increment(item) {
+          const data = {
+            "id": item.key,
+            "quantity": item.quantity + 1
+          }
+          axios.post('/cart/change.js', data)
+            .then(response => {
+              store.getCart()
+            })
+            .catch(error => console.log(error))
+        },
+        money(value) {
+          if (!value) return 0
+          return "€" + (value / 100).toFixed(2)
+        }
+      },
+      computed: {
+        cart() {
+          return this.cartData[0];
+        }
+      }
+    }).mount('#vue-cart-form')
+  }
+</script>

@@ -1,0 +1,94 @@
+  <template v-if="cart && cart.items.length > 0">
+    <ul class="cart_items js-cart_items clearfix" >
+      <li class="cart_item clearfix" v-for="item in cart.items">
+        <a :href="item.url">
+          <div class="cart_image">
+            <img :src="item.image" :alt="item.title" class="lazyload" />
+          </div>
+        </a>
+          <div class="cart_item__title">
+            <a :href="item.url" class="mhh">
+              <div class="item_title">
+                ${ item.title }
+              </div>
+            </a>
+          <div class="left product-quantity-box">
+            <span class="ss-icon product-minus js-change-quantity" data-func="minus" @click="decrement(item)"><span class="icon-minus"></span></span>
+            <input type="number" class="quantity" type="text" v-model="item.quantity" />
+            <span class="ss-icon product-plus js-change-quantity " data-func="plus" @click="increment(item)"><span class="icon-plus"></span></span>
+          </div>
+        </div>
+        <strong class="right price">
+          <span class="money">${ money(item.price) }</span>
+        </strong>
+      </li>
+    </ul>
+    <hr />
+    <ul>
+      <li class="cart_subtotal js-cart_subtotal">
+        <span class="right">
+          <span class="money">${ money(cart.total_price) }</span>
+        </span>
+        <span>{{ 'layout.general.subtotal' | t }}</span>
+      </li>
+      <li>
+        {% if settings.go_to_checkout %}
+          <button type="submit" class="action_button add_to_cart">{% if settings.show_lock_icon %}<span class="icon-lock"></span>{% endif %}{{ 'layout.general.checkout' | t }}</button>
+        {% else %}
+          <button type="submit" class="action_button add_to_cart">{% if settings.show_lock_icon %}<span class="icon-lock"></span>{% endif %}{{ 'layout.general.go_to_cart' | t }} </button>
+        {% endif %}
+      </li>
+    </ul>
+  </template>
+
+  <template v-else>
+    <p class="empty_cart">{{ 'layout.general.empty_cart' | t }}</p>
+  </template>
+</div>
+
+<script>
+  if (document.querySelector('#mini-cart-form')) {
+
+    const cart = Vue.createApp({
+      delimiters: ['${', '}'],
+      data() {
+        return {
+          cartData: store.state.cartState
+        }
+      },
+      methods: {
+        decrement(item) {
+          const data = {
+            "id": item.key,
+            "quantity": item.quantity - 1
+          }
+          axios.post('/cart/change.js', data)
+            .then(response => {
+              store.getCart()
+            })
+            .catch(error => console.log(error))
+        },
+        increment(item) {
+          const data = {
+            "id": item.key,
+            "quantity": item.quantity + 1
+          }
+          axios.post('/cart/change.js', data)
+            .then(response => {
+              store.getCart()
+            })
+            .catch(error => console.log(error))
+        },
+        money(value) {
+          if (!value) return 0
+          return "€" + (value/100).toFixed(2)
+        }
+      },
+      computed: {
+        cart() {
+          return this.cartData[0];
+        }
+      }
+    }).mount('#mini-cart-form')
+  }
+  </script>
