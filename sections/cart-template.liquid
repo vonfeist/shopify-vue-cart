@@ -1,0 +1,138 @@
+{% comment %}
+** Cart page - default view **
+- Template section
+{% endcomment %}
+<div class="container main content">
+  <a name="pagecontent" id="pagecontent"></a>
+  
+  <div class="section clearfix">
+    <div class="sixteen columns">
+      <h1>{{ 'cart.general.title' | t }}</h1>
+      <div class="feature_divider"></div>
+    </div>
+  </div>
+  
+  {% if cart.item_count == 0 %}
+    <div class="sixteen columns">
+      <div class="section clearfix">
+        <div class="six columns offset-by-five medium-down--one-whole">
+          <p class="quote">{{ 'cart.general.continue_browsing_html' | t }}</p>
+  
+          <a href="{% if cart.items.first.product.collections != blank %}{{ cart.items.first.product.collections.last.url }}{% else %}/collections/all{% endif %}" class="action_button continue-button add_to_cart">{{ 'cart.general.continue_shopping_link_html' | t }}</a>
+        </div>
+        <br class="clear" />
+      </div>
+    </div>
+  {% else %}
+  
+    <form action="/cart" method="post" id="cart_form">
+      <div class="section clearfix">
+        {% render 'vue-cart' %}
+      </div>
+    </form>
+  
+    {% include 'cart-shipping-calculator' %}
+  {% endif %}
+  
+  </div>
+  
+  <div class="cart__blocks">
+    {% for block in section.blocks %}
+      <div {{ block.shopify_attributes }} class="block__{{ block.type }} block__{{ block.id }}">
+        {% if block.type == 'featured_collection' %}
+          {% include 'include-featured-collection', type: 'block' %}
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  
+  {% schema %}
+  
+  {
+    "name": "Cart page",
+    "class": "cart-section",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "display_special_instructions",
+        "label": "Show \"note\" text box"
+      },
+      {
+        "type": "checkbox",
+        "id": "display_tos_checkbox",
+        "label": "Show \"agree to terms\" checkbox",
+        "info": "If the dynamic payment button is enabled, customers will be able to bypass these terms ([?](https:\/\/help.shopify.com\/en\/manual\/sell-online\/online-store\/dynamic-checkout))"
+      },
+      {
+        "type": "checkbox",
+        "id": "display_savings",
+        "label": "Show total savings",
+        "default": true
+      },
+      {
+        "type": "richtext",
+        "id": "cart_message",
+        "label": "Cart message"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "featured_collection",
+        "name": "Featured collection",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "You may also be interested in"
+          },
+          {
+            "type": "checkbox",
+            "id": "collection_description",
+            "label": "Show collection description",
+            "default": false
+          },
+          {
+            "type": "collection",
+            "id": "collection",
+            "label": "Collection"
+          },
+          {
+            "type": "radio",
+            "id": "collection_style",
+            "label": "Collection layout",
+            "default": "grid",
+            "options": [
+              {
+                "value": "slider",
+                "label": "Slider"
+              },
+              {
+                "value": "grid",
+                "label": "Grid"
+              }
+            ]
+          },
+          {
+            "type": "range",
+            "id": "products_per",
+            "label": "Products per row",
+            "min": 2,
+            "max": 7,
+            "step": 1,
+            "default": 6
+          },
+          {
+            "type": "range",
+            "id": "products_limit",
+            "label": "Limit products",
+            "min": 2,
+            "max": 50,
+            "step": 1,
+            "default": 6
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}
